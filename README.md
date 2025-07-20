@@ -45,7 +45,7 @@ Teniendo en cuenta que el objetivo es calcular las coordenadas finales de una po
 Con éstos datos se debe:
 
 ### En poligonales cerradas
-Corregir los ángulos internos y externos, para que la suma sea coherente. Para hacer esto se nesecitan las siguientes formulas: 
+Corregir los ángulos internos y externos, para que la suma sea coherente y con ésto calcular el azimut. Para hacer esto se nesecitan las siguientes formulas: 
 ***Suma teórica de angulos***
 ```
 Internos: (n − 2) × 180°
@@ -64,9 +64,57 @@ error_angular / n(número le lados)
 ````
 ángulo + corrección por ángulo
 ````
+***Cálculo de azimut***
+- Para giro hacia la izquierda
+````
+azimut nuevo = azimut anterior + ángulo corregido
+````
+- Para giro hacia la derecha
+````
+azimut nuevo = azimut anterior + ángulo corregido
+````
+***Mantener el azimut en el rango convencional (o°-360°)***
+````
+azimut = azimut % 360
+````
+***Convertir azimut a radianes***
+````
+Radianes = (Grados * π) / 180
+````
 Utilizadas en ese orden, con la siguiente lógica 
 ````
 *************diagrama de la correcion de angulos********
 ````
-### Cálculo de rumbos o acimutes
+### Cálculo de proyecciones en x y y, y correciones.
+***Proyecciones en Nortes***
+````
+DeltaN= Cos(az) * distancia 
+````
+***Proyecciones en Estes***
+````
+DeltaE= Sen(az) * distancia 
+````
+````
+----------------diagrama----------
+````
+### Calculo de coordenadas sin correción
+***Coordenadas Norte***
+````
+x =`x anterior + DeltaN
+````
+***Coordenadas Este***
+````
+x = x anterior +DeltaE
+````
+### Correciones en proyecciones y coordenadas finales.
+***Error de cierre***
+````
+Error en x = Coordenada en x inicial - coordenada en x final
+Error en y = Coordenada en y inicial - coordenada en y final
+````
+***Proyecciones en Nortes***
+````
+Delta= Cos(az) * distancia 
+````
+
 
