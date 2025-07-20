@@ -25,10 +25,7 @@ Un estudiante está en clase de Geomática. Luego de levantar datos con el teodo
 - Calcular las coordenadas de los puntos y las distancias
 - Corregir errores
 - Exportar los resultados en la consola, o en archivo .csv
-````
 
-**********Aqui va diagrama del funcionamiento por encima, sin calculos**********
-````
 ## ¡Antes de!
 
 Debemos entender primero como funcionan los calculos a continuación, que se nesecita para calcular una poligonal cerrada o abierta:  
@@ -47,74 +44,184 @@ Con éstos datos se debe:
 ### En poligonales cerradas
 Corregir los ángulos internos y externos, para que la suma sea coherente y con ésto calcular el azimut. Para hacer esto se nesecitan las siguientes formulas: 
 ***Suma teórica de angulos***
-```
-Internos: (n − 2) × 180°
-
-Externos (n + 2) × 180°
-```
+```math
+$$
+\text{Ángulos\_internos} = (n - 2) \times 180^\circ
+$$
+````
+````math
+$$
+\text{Ángulos\_externos} = (n + 2) \times 180^\circ
+$$
+````
 ***error_angular***
-```
-suma teorica - sumatoria observada
+```math
+$$
+\text{Corrección\_angular\_total} = \text{Suma\_teórica} - \sum \text{ángulos\_observados}
+$$
 ````
 ***corrección por ángulo***
-````
-error_angular / n(número le lados)
+````math
+$$
+\text{Corrección\_por\_ángulo} = \frac{\text{Error\_angular}}{n}
+$$
 ````
 ***ángulo corregido***
-````
-ángulo + corrección por ángulo
+````math
+$$
+\text{Ángulo\_corregido} = \text{Ángulo\_observado} + \text{Corrección\_por\_ángulo}
+$$
 ````
 ***Cálculo de azimut***
 - Para giro hacia la izquierda
-````
-azimut nuevo = azimut anterior + ángulo corregido
+````math
+$$
+\text{Azimut\_nuevo} = \text{Azimut\_anterior} + \text{Ángulo\_corregido}
+$$
 ````
 - Para giro hacia la derecha
-````
-azimut nuevo = azimut anterior + ángulo corregido
+````math
+$$
+\text{Azimut\_nuevo} = \text{Azimut\_anterior} + \text{Ángulo\_corregido}
+$$
 ````
 ***Mantener el azimut en el rango convencional (o°-360°)***
-````
-azimut = azimut % 360
+````math
+$$
+\text{Azimut} = \text{Azimut} / 360^\circ
+$$
 ````
 ***Convertir azimut a radianes***
-````
-Radianes = (Grados * π) / 180
-````
-Utilizadas en ese orden, con la siguiente lógica 
-````
-*************diagrama de la correcion de angulos********
+````math
+$$
+\text{Radianes} = \frac{\text{Grados} \cdot \pi}{180}
+$$
 ````
 ### Cálculo de proyecciones en x y y, y correciones.
 ***Proyecciones en Nortes***
-````
-DeltaN= Cos(az) * distancia 
+````math
+$$
+\Delta N = \cos(\text{azimut}) \cdot \text{distancia}
+$$
 ````
 ***Proyecciones en Estes***
-````
-DeltaE= Sen(az) * distancia 
-````
-````
-----------------diagrama----------
+````math
+$$
+\Delta E = \sin(\text{azimut}) \cdot \text{distancia}
+$$
 ````
 ### Calculo de coordenadas sin correción
 ***Coordenadas Norte***
-````
-x =`x anterior + DeltaN
+````math
+$$
+Y = Y_{\text{anterior}} + \Delta N
+$$
 ````
 ***Coordenadas Este***
+````math
+$$
+X = X_{\text{anterior}} + \Delta E
+$$
 ````
-x = x anterior +DeltaE
+Utilizadas en ese orden, con la siguiente lógica 
+````mermaid
+flowchart TD
+    A[Inicio] --> B[Ingresar datos]
+    B --> B1[Cantidad de lados: n]
+    B <--> B2[Ángulos observados]
+    B --> B3[Distancias]
+    B --> B4[Coordenadas iniciales X y Y]
+
+    B1 --> C{Tipo de ángulo}
+    C -->|Internos| D1["Suma teórica = (n - 2) * 180"]
+    C -->|Externos| D2["Suma teórica = (n + 2) * 180"]
+
+    D1 --> E[Sumar ángulos observados]
+    D2 --> E
+
+    E --> F["Error angular = Suma teórica - Suma observada"]
+    F --> G["Corrección por ángulo = Error / n"]
+    G --> H["Ángulo corregido = Observado + Corrección"]
+
+    H --> I{¿Girar a la izquierda o derecha?}
+    I -->|Izquierda| J1["Azimut nuevo = Azimut anterior + Ángulo corregido"]
+    I -->|Derecha| J2["Azimut nuevo = Azimut anterior - Ángulo corregido"]
+
+    J1 --> K
+    J2 --> K
+
+    K["Azimut = Azimut mod 360"] --> L["Azimut radianes = (Grados * π) / 180"]
+
+    L --> M1["Delta Norte = cos(azimut) * distancia"]
+    L --> M2["Delta Este = sen(azimut) * distancia"]
+
+    M1 --> N1["X nueva = X anterior + Delta Norte"]
+    M2 --> N2["Y nueva = Y anterior + Delta Este"]
+
+    N1 --> O1[Guardar coordenada X]
+    N2 --> O2[Guardar coordenada Y]
+
+    O1 --> P{¿Hay más puntos?}
+    O2 --> P
+
+    P -->|Sí| B2
+    P -->|No| FIN
 ````
 ### Correciones en proyecciones y coordenadas finales.
 ***Error de cierre***
+````math
+$$
+\text{Error}_x = X_{\text{inicial}} - X_{\text{final}}
+$$
 ````
-Error en x = Coordenada en x inicial - coordenada en x final
-Error en y = Coordenada en y inicial - coordenada en y final
+````math
+$$
+\text{Error}_y = Y_{\text{inicial}} - Y_{\text{final}}
+$$
 ````
-***Proyecciones en Nortes***
+***Total distancia***
+```math
+\text{distancia\_total}_i = \left( \sum_{} distancias \right)
+```
+***Distancias acumuladas***
+````math
+$$
+\text{distancia\_acumulada}_i = \sum_{k=1}^{i} d_k
+$$
+
+```` 
+***Coordenadas corregidas***
+````math
+$$
+x_{\text{corregido}} = x_i + \left( \frac{d_i}{D} \right) \cdot e_x
+$$
 ````
-Delta= Cos(az) * distancia 
+````math
+$$
+y_{\text{corregido}} = y_i + \left( \frac{d_i}{D} \right) \cdot e_y
+$$
 ````
+Usando la siguiente lógica
+````mermaid
+flowchart TD
+    A{¿Hay más puntos?}
+    A -- No --> B1[Calcular diferencia entre X inicial y X final]
+    A -- No --> B2[Calcular diferencia entre Y inicial y Y final]
+    B1 --> C[Asignar error en X como ex]
+    B2 --> D[Asignar error en Y como ey]
+    C --> E[Sumar todas las distancias para obtener D]
+    D --> E
+    E --> F[Para cada punto: calcular distancia acumulada hasta i]
+    F --> G[Corregir X sumando proporcion de ex segun distancia acumulada]
+    F --> H[Corregir Y sumando proporcion de ey segun distancia acumulada]
+    G --> I[Guardar X corregido]
+    H --> J[Guardar Y corregido]
+    I --> K{¿Quedan coordenadas por corregir?}
+    J --> K
+    K -- Si --> F
+    K -- No --> L[Fin del proceso]
+````
+## Para poligonal abierta
+Básicamente hace lo mismo pero sin la corrección de ángulos
 
 
