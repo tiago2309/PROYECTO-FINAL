@@ -221,7 +221,56 @@ flowchart TD
     K -- Si --> F
     K -- No --> L[Fin del proceso]
 ````
-## Para poligonal abierta
-Básicamente hace lo mismo pero sin la corrección de ángulos
+### Para poligonal abierta básicamente hace lo mismo pero sin la corrección de ángulos
+## Explicación general
+### 1. Módulo principal (`main.py`)
+Contiene el menú interactivo y la lógica general del programa.
 
+### 2. Cálculos y utilidades (`utils.py`)
+- `calcular_suma_teorica_angulos()`
+- `calcular_correccion_angulos()`
+- `calcular_coordenadas()`
+- etc.
 
+### 3. Entrada/salida (`io.py`)
+- `leer_csv()`
+- `exportar_a_csv()`
+- `graficar_poligonal()`
+
+### 4. Interfaz amigable
+Mensajes motivadores, validación de entradas, estilo relajado y amigable.
+
+## Diagrama de flujo del programa 
+````mermaid
+flowchart TD
+    A[Inicio] --> B[Mostrar menú]
+    B --> C{Opción seleccionada}
+    
+    C -->|1: Ingreso manual| D1[Solicitar tipo de poligonal]
+    D1 --> E1[Ingresar coordenadas iniciales y azimut]
+    E1 --> F1[Ingresar lados y ángulos]
+    F1 --> G1{¿Poligonal cerrada?}
+    
+    G1 -->|Sí| H1[Corregir ángulos]
+    H1 --> I1[Calcular coordenadas]
+    G1 -->|No| I1
+    
+    I1 --> J1[Graficar poligonal]
+    J1 --> K1[Exportar coordenadas a CSV]
+    K1 --> L1[Volver al menú]
+
+    C -->|2: Ingreso por CSV| D2[Leer datos desde archivo CSV]
+    D2 --> E2[Solicitar tipo de poligonal]
+    E2 --> F2[Ingresar coordenadas iniciales y azimut]
+    F2 --> G2{¿Poligonal cerrada?}
+    
+    G2 -->|Sí| H2[Corregir ángulos]
+    H2 --> I2[Calcular coordenadas]
+    G2 -->|No| I2
+
+    I2 --> J2[Graficar poligonal]
+    J2 --> K2[Exportar coordenadas a CSV]
+    K2 --> L2[Volver al menú]
+
+    C -->|3: Salir| Z[Fin del programa]
+````
