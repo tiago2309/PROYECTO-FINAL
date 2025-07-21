@@ -54,6 +54,15 @@ $$
 \text{Ángulos\_externos} = (n + 2) \times 180^\circ
 $$
 ````
+```
+def calcular_suma_teorica_angulos(n: int, tipo_angulo: str) -> float:
+    # Si los ángulos son internos, la fórmula es (n - 2) * 180°
+    if tipo_angulo == 'i':
+        return (n - 2) * 180
+    else:
+        # Si los ángulos son externos, la fórmula es (n + 2) * 180°
+        return (n + 2) * 180
+```
 ***error_angular***
 ```math
 $$
@@ -66,6 +75,20 @@ $$
 \text{Corrección\_por\_ángulo} = \frac{\text{Error\_angular}}{n}
 $$
 ````
+```
+def calcular_correccion_angulos(n, tipo_angulo, suma_angular_observada):
+
+    # Calcula la suma teórica según el número de lados y tipo de ángulo
+    suma_teorica = calcular_suma_teorica_angulos(n, tipo_angulo)
+
+    # Calcula el error angular como la diferencia entre la suma teórica y la observada
+    error = suma_teorica - suma_angular_observada
+
+    # La corrección que se aplicará a cada ángulo es el error dividido entre la cantidad de ángulos
+    correccion = error / n
+
+    return correccion, error, suma_teorica
+```
 ***ángulo corregido***
 ````math
 $$
@@ -97,6 +120,16 @@ $$
 \text{Radianes} = \frac{\text{Grados} \cdot \pi}{180}
 $$
 ````
+```
+# Conversión del ángulo de sexagesimal a decimal
+    azimut_decimal = grados + minutos / 60 + segundos / 3600
+    
+    # Muestra el azimut convertido para verificación
+    print(f"El azimut inicial en decimal: {azimut_decimal:.3f}°")
+    
+    # Devuelve los valores necesarios
+    return x_inicial, y_inicial, azimut_decimal
+```
 ### Cálculo de proyecciones en x y y, y correciones.
 ***Proyecciones en Nortes***
 ````math
@@ -123,6 +156,7 @@ $$
 X = X_{\text{anterior}} + \Delta E
 $$
 ````
+
 Utilizadas en ese orden, con la siguiente lógica 
 ````mermaid
 flowchart TD
@@ -167,6 +201,32 @@ flowchart TD
     P -->|Sí| B2
     P -->|No| FIN
 ````
+```
+def calcular_coordenadas(x_inicial, y_inicial, azimut_inicial, lados, tipo_angulo):  
+    puntos = [(x_inicial, y_inicial)]
+    azimut_actual = azimut_inicial
+
+    for distancia, angulo, direccion in lados:
+        if tipo_angulo == 'i':
+            if direccion == "i":
+                azimut_actual = (azimut_actual + (180 - angulo)) % 360
+            else:
+                azimut_actual = (azimut_actual - (180 - angulo)) % 360
+        else:  # externos
+            if direccion == "i":
+                azimut_actual = (azimut_actual - angulo) % 360
+            else:
+                azimut_actual = (azimut_actual + angulo) % 360
+
+
+        azimut_rad = math.radians(azimut_actual)
+        x_anterior, y_anterior = puntos[-1]
+        x_nuevo = x_anterior + distancia * math.sin(azimut_rad)
+        y_nuevo = y_anterior + distancia * math.cos(azimut_rad)
+        puntos.append((x_nuevo, y_nuevo))
+
+    return puntos
+```
 ### Correciones en proyecciones y coordenadas finales.
 ***Error de cierre***
 ````math
@@ -174,6 +234,23 @@ $$
 \text{Error}_x = X_{\text{inicial}} - X_{\text{final}}
 $$
 ````
+```
+def verificar_cierre(coordenadas, tolerancia=0.01):
+    # Se extrae la coordenada del punto inicial
+    x_inicio, y_inicio = coordenadas[0]
+    # Se extrae la coordenada del punto final
+    x_final, y_final = coordenadas[-1]
+    
+    # Se calcula la diferencia absoluta en X y Y entre el inicio y el final
+    dx = abs(x_inicio - x_final)
+    dy = abs(y_inicio - y_final)
+    
+    # Se verifica si ambas diferencias están dentro de la tolerancia permitida
+    if dx <= tolerancia and dy <= tolerancia:
+        return True  # La poligonal se considera cerrada correctamente
+    else:
+        return False  # Existe un error de cierre mayor a la tolerancia
+```
 ````math
 $$
 \text{Error}_y = Y_{\text{inicial}} - Y_{\text{final}}
@@ -221,7 +298,139 @@ flowchart TD
     K -- Si --> F
     K -- No --> L[Fin del proceso]
 ````
+```
+def corregir_lados(lados, tipo_angulo):
+    """
+    Aplica la corrección angular proporcional a cada ángulo medido en los lados de una poligonal cerrada.
+
+    Parámetros:
+        lados (list): Lista de tuplas (distancia, ángulo, dirección), donde 'distancia' es la longitud del lado,
+                      'ángulo' es el ángulo interno/externo medido y 'dirección' es 'i' o 'd'.
+        tipo_angulo (str): Indica si los ángulos son internos o externos.
+
+    Retorna:
+        list: Lista de lados con los ángulos corregidos.
+    """
+    n = len(lados)  # Número de lados
+    # Suma de todos los ángulos ingresados por el usuario
+    suma_angulos = sum([ang for _, ang, _ in lados])
+    
+    # Calcula la corrección por ángulo, el error angular y la suma teórica que debería tener la poligonal
+    correccion, error_angular, suma_teorica = calcular_correccion_angulos(n, tipo_angulo, suma_angulos)
+
+    # Muestra al usuario el resumen de la corrección realizada
+    print("\nCorrección angular automática:")
+    print(f" Suma ingresada: {suma_angulos:.3f}°")
+    print(f" Teórica: {suma_teorica:.3f}°")
+    print(f" Error angular: {error_angular:.3f}°")
+    print(f" Corrección por ángulo: {correccion:.3f}°")
+
+    # Se aplican las correcciones sumando el mismo valor a cada ángulo
+    lados_corregidos = [(dist, ang + correccion, dir) for dist, ang, dir in lados]
+
+    # Se retorna la nueva lista con los ángulos corregidos
+    return lados_corregidos
+
+
+def corregir_distancias_y_proyecciones(coordenadas, lados):
+    """
+    Aplica la corrección proporcional a las distancias y proyecciones de una poligonal cerrada,
+    distribuyendo el error de cierre entre los puntos intermedios según la distancia acumulada.
+
+    Parámetros:
+        coordenadas (list): Lista de coordenadas (X, Y) originales de la poligonal.
+        lados (list): Lista de lados, cada uno como tupla (distancia, ángulo, dirección).
+
+    Retorna:
+        list: Lista de coordenadas corregidas (X, Y).
+    """
+    print("\nCorrección proporcional de distancias y proyecciones")
+
+    # Punto inicial y final de la poligonal (antes de la corrección)
+    x_inicio, y_inicio = coordenadas[0]
+    x_final, y_final = coordenadas[-1]
+
+    # Cálculo del error de cierre en X y Y (diferencia entre el punto inicial y final)
+    error_x = x_inicio - x_final
+    error_y = y_inicio - y_final
+
+    # Suma total de las distancias medidas en los lados
+    total_distancia = sum([lado[0] for lado in lados])
+
+    # Se inicializa la lista de coordenadas corregidas con el punto de partida
+    coordenadas_corregidas = [coordenadas[0]]
+    distancia_acumulada = 0  # Para llevar el acumulado de distancia desde el inicio
+
+    # Recorre los puntos intermedios (desde el segundo hasta el último)
+    for i in range(1, len(coordenadas)):
+        # Acumula la distancia del lado anterior
+        distancia_acumulada += lados[i - 1][0]
+
+        # Calcula la fracción del error proporcional a la distancia acumulada
+        fx = (distancia_acumulada / total_distancia) * error_x
+        fy = (distancia_acumulada / total_distancia) * error_y
+
+        # Coordenadas originales del punto actual
+        x_orig, y_orig = coordenadas[i]
+
+        # Se le aplica la corrección proporcional a las coordenadas
+        x_corr = x_orig + fx
+        y_corr = y_orig + fy
+
+        # Se agregan las coordenadas corregidas a la lista
+        coordenadas_corregidas.append((x_corr, y_corr))
+
+    # Se devuelve la lista completa de coordenadas corregidas
+    return coordenadas_corregidas
+```
+
 ### Para poligonal abierta básicamente hace lo mismo pero sin la corrección de ángulos
+
+## Para graficar
+````
+def graficar_poligonal(coordenadas, nombre_archivo="poligonal.png"):
+    # Crea una nueva figura de tamaño 10x8 pulgadas para la visualización
+    plt.figure(figsize=(10, 8))
+
+    # Separa las coordenadas X y Y en dos listas diferentes
+    xs = [x for x, y in coordenadas]
+    ys = [y for x, y in coordenadas]
+
+    # Dibuja la poligonal conectando los puntos con líneas y marcando cada vértice con un círculo
+    plt.plot(xs, ys, marker='o', linestyle='-', color='blue')
+
+    # Recorre todos los puntos para etiquetarlos y mostrar la distancia entre cada par de puntos consecutivos
+    for i, (x, y) in enumerate(coordenadas):
+        # Agrega una etiqueta "P1", "P2", etc., ligeramente desplazada hacia arriba
+        plt.text(x, y + 0.5, f"P{i+1}", fontsize=9, ha='center', va='bottom', color='darkred')
+        
+        # Si no es el primer punto, calcular y mostrar la distancia al punto anterior
+        if i > 0:
+            x0, y0 = coordenadas[i - 1]  # Punto anterior
+            distancia = math.hypot(x - x0, y - y0)  # Distancia euclidiana
+            xm = (x + x0) / 2  # Coordenada X del punto medio
+            ym = (y + y0) / 2  # Coordenada Y del punto medio
+            plt.text(xm, ym, f"{distancia:.2f} m", fontsize=8, ha='center', va='center', color='black')  # Etiqueta
+
+    # Título y etiquetas de los ejes
+    plt.title("Poligonal")
+    plt.xlabel("X")
+    plt.ylabel("Y")
+
+    # Habilita la cuadrícula
+    plt.grid(True)
+
+    # Asegura que los ejes X e Y tengan la misma escala
+    plt.axis('equal')
+
+    # Guarda el gráfico como archivo PNG con alta resolución
+    plt.savefig(nombre_archivo, dpi=300)
+    plt.close()  # Cierra la figura para liberar memoria
+
+    # Mensaje de confirmación
+    print(f"\nGráfico guardado como '{nombre_archivo}' con amor.")
+
+````
 ## Explicación general
 ### 1. Módulo principal (`main.py`)
 Contiene el menú interactivo y la lógica general del programa.
@@ -240,37 +449,31 @@ Contiene el menú interactivo y la lógica general del programa.
 ### 4. Interfaz amigable
 Mensajes motivadores, validación de entradas, estilo relajado y amigable.
 
-## Diagrama de flujo del programa 
+
+## Diagrama de flujo del programa
+
 ````mermaid
 flowchart TD
-    A[Inicio] --> B[Mostrar menú]
-    B --> C{Opción seleccionada}
-    
-    C -->|1: Ingreso manual| D1[Solicitar tipo de poligonal]
-    D1 --> E1[Ingresar coordenadas iniciales y azimut]
-    E1 --> F1[Ingresar lados y ángulos]
-    F1 --> G1{¿Poligonal cerrada?}
-    
-    G1 -->|Sí| H1[Corregir ángulos]
-    H1 --> I1[Calcular coordenadas]
-    G1 -->|No| I1
-    
-    I1 --> J1[Graficar poligonal]
-    J1 --> K1[Exportar coordenadas a CSV]
-    K1 --> L1[Volver al menú]
-
-    C -->|2: Ingreso por CSV| D2[Leer datos desde archivo CSV]
-    D2 --> E2[Solicitar tipo de poligonal]
-    E2 --> F2[Ingresar coordenadas iniciales y azimut]
-    F2 --> G2{¿Poligonal cerrada?}
-    
-    G2 -->|Sí| H2[Corregir ángulos]
-    H2 --> I2[Calcular coordenadas]
-    G2 -->|No| I2
-
-    I2 --> J2[Graficar poligonal]
-    J2 --> K2[Exportar coordenadas a CSV]
-    K2 --> L2[Volver al menú]
-
-    C -->|3: Salir| Z[Fin del programa]
+    A[Inicio] --> B[Solicitar tipo de poligonal]
+    B --> C{¿Es poligonal cerrada?}
+    C -->|Sí| D[Solicitar tipo de angulo: interno o externo]
+    C -->|No| E[Continuar sin angulos]
+    D --> F[Solicitar numero de lados y angulos]
+    E --> F
+    F --> G[Solicitar coordenadas iniciales y azimut]
+    G --> H{¿Entrada manual o por CSV?}
+    H -->|Manual| I[Ingresar lados y angulos manualmente]
+    H -->|CSV| J[Leer datos desde archivo CSV]
+    I --> K[Convertir angulos a decimales]
+    J --> K
+    K --> L{¿Es poligonal cerrada?}
+    L -->|Sí| M[Corregir suma de angulos observados]
+    L -->|No| N[Calcular coordenadas sin correccion angular]
+    M --> O[Aplicar correccion angular proporcional]
+    O --> P[Calcular coordenadas]
+    N --> P
+    P --> Q[Aplicar correccion de cierre si es cerrada]
+    Q --> R[Exportar resultados a CSV]
+    R --> S[Graficar poligonal y guardar PNG]
+    S --> T[Fin]
 ````
