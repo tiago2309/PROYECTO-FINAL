@@ -8,93 +8,241 @@ Curso: Programación de Computadores
 Grupo: 404 CNF (Chill Not Found)    
 Universidad Nacional de Colombia  
 
-## Contexto
-En la Ingeniería Civil, una de las actividades fundamentales en proyectos de obras civiles (como carreteras, redes de acueducto, edificaciones, puentes, etc.) es la topografía, que permite conocer y representar el terreno de forma precisa, lo que es necesario para la planificación, desarrollo, diseño y ejecución de obras civiles.  Actualmente estamos cursando la asignatura de Geomática Básica dónde hemos encontrdo dificultades a la hora de hallar soluciones rapidas a los problemas dados, ya que la toma de datos se realiza muchas veces manualmente, en clases prácticas que se dan bajo diferentes condiciones, muchas veces no ideal, con tiempo limitado lo que no siempre permite repasar a fondo los procedimientos ni validar datos con precisión, tomando los datos manuelmente o en hojas de cálculo, haciendo cálculos repetitivos, y con más probabilidad a error, lo cual consume tiempo (que podría usarse en interpretación, análisis o mejora del diseño) y puede generar errores, que al momento de aplicar en la vida profesional y un proyecto real, trae consecuencias costosas. Se necesita una herramienta por consola que automatice este proceso para estudiantes y técnicos.
+## Problema
+Durante el desarrollo del curso de Geomática Básica en Ingeniería Civil, enfrentamos múltiples retos al momento de procesar los datos topográficos obtenidos en campo. Una de las principales dificultades fue la corrección manual de errores en poligonales abiertas y cerradas, especialmente cuando los ángulos no cuadraban con los valores teóricos esperados o cuando se presentaban errores de cierre. Este proceso no solo era propenso a errores humanos, sino que también consumía tiempo valioso.
 
-### Solución 
-La idea de este programa es crear una herramienta por consola en Python llamada TopograficTool, que permita a los usuarios calcular coordenadas, cierres, y correcciones de poligonales (abiertas y cerradas) usando datos ingresados manualmente o desde archivos ".csv"(los más usados en topografia).Con herramientas automatizadas es más fácil llevar un registro digital de cada ejercicio, estudiante o grupo de trabajo, por lo que creamos una herramienta ligera por consola que puede ser el puente entre lo que se enseña en clase y lo que se aplica en campo, entendiendo también que la transformación digital en ingeniería exige que los nuevos profesionales sean capaces de crear sus propias soluciones. Como estudiantes de la carrera y la materia, decidimos que no queremos que el programa sea algo totalmente serio y académico, comprendiendo el estrés que produce la vida académica, queremos aliviarlo con una consola que sea interactiva, donde no solo el usuario decide que hacer, si no que ve una interfaz diferente, y con mensajes motivadores, que lo hagan salir de la rutina.
+### ¿Por qué este problema?
+Escogimos este problema porque lo vivimos de primera mano durante nuestras prácticas académicas. Sentimos la necesidad de contar con una herramienta que no solo automatizara el cálculo de coordenadas, sino que también permitiera realizar correcciones angulares y de cierre de manera precisa y rápida. Creemos que esta herramienta puede ser útil para otros estudiantes que necesiten validar sus datos topográficos de forma sencilla y confiable.
 
-## ¿Cómo funciona?
-Un estudiante está en clase de Geomática. Luego de levantar datos con el teodolito (insumo utilizado en las prácticas para medir distancias y ángulos de un terreno), debe procesarlos:  
+## Solución propuesta
+Desarrollamos TopograficTool, una aplicación interactiva en Python que permite:
 
-- Presentar un menú al usuario, para que elija los cálculos a trabajar.
-- Pedir que ingrese datos iniciales.
-- Permitirle elegir al usuario con que tipo de poligonal y ángulos trabajará
-- Cargar los puntos medidos (distancias, coordenadas)
-- Verificar si es poligonal abierta o cerrada
-- Calcular las coordenadas de los puntos y las distancias
-- Corregir errores
-- Exportar los resultados en la consola, o en archivo .csv
-
-## ¡Antes de!
-
-Debemos entender primero como funcionan los calculos a continuación, que se nesecita para calcular una poligonal cerrada o abierta:  
-
-Una poligonal es una sucesión de lineas que se conectan entre si y con las cuales se miden distancias y angulos, para calcular coordenadas y utilizarlas para representar un terreno (y con esto hacer muchas cosas más, pero no es el punto ahora).  
-
-Una poligonal abierta se presenta cuando el punto final no coincide con el inicial (como las carreteras).  
-En una poligonal cerrada el punta final coincide con el inicial (como lotes, terrenos).  
-
-Teniendo en cuenta que el objetivo es calcular las coordenadas finales de una poligonal, para los dos casos se debe ingresar:
-- Coordenas y ángulos de los dos puntos iniciales (Norte y Este)
-- Distancias, ángulos, cantidad de ángulos, tipos de ángulos (internos o externos), por cada punto de la poligonal.  
+- Ingresar datos de ángulos y distancias manualmente o mediante archivos .csv. 
+- Identificar si la poligonal es abierta o cerrada.
+- Calcular automáticamente la suma teórica de los ángulos.
+- Aplicar correcciones angulares cuando sea necesario.
+- Realizar el cálculo de coordenadas a partir del azimut inicial y los datos corregidos.
+- Graficar la poligonal con nombres, distancias y coordenadas.
+- Exportar los resultados a archivos .csv y la gráfica a formato .png.
   
-Con éstos datos se debe:
+## Contextualización
+Una poligonal es una secuencia de líneas rectas conectadas entre sí mediante ángulos, comúnmente utilizadas en levantamientos topográficos para determinar posiciones sobre el terreno. Estas figuras permiten representar caminos, límites de terrenos, perímetros o recorridos, dependiendo de la aplicación.
 
-### En poligonales cerradas
-Corregir los ángulos internos y externos, para que la suma sea coherente y con ésto calcular el azimut. Para hacer esto se nesecitan las siguientes formulas: 
-***Suma teórica de angulos***
-```math
-$$
-\text{Ángulos\_internos} = (n - 2) \times 180^\circ
-$$
-````
-````math
-$$
-\text{Ángulos\_externos} = (n + 2) \times 180^\circ
-$$
-````
+Existen dos tipos principales:
+
+- Poligonal cerrada: parte de un punto conocido y regresa a ese mismo punto. Esto permite verificar si hubo errores, ya que se puede comparar la coordenada final calculada con la inicial y aplicar correcciones proporcionales si hay discrepancias.
+
+- Poligonal abierta: no regresa al punto de partida. Aunque es más fácil de ejecutar en campo (como en el caso de una carretera), su análisis es más exigente porque no se puede cerrar el ciclo geométricamente para validar errores de forma directa.
+
+Este contexto es clave para entender por qué los cálculos de ángulos, distancias y coordenadas deben ser tratados cuidadosamente en ambos casos.
+
+## ¿Cómo se abordo el problema?
+Para calcular las coordenadas de una poligonal se necesita:
+
+- Las coordenadas de los dos primeros puntos, que establecen la dirección inicial.
+- Por cada segmento: la distancia, el ángulo medido, y la dirección (izquierda o derecha).
+- El tipo de ángulo usado (interno o externo) y la cantidad total de ángulos.
+Con esta información:
+- Se calcula el rumbo inicial (dirección del primer segmento).
+- Se actualiza el rumbo según los ángulos y las direcciones indicadas.
+- A partir del rumbo y la distancia, se determinan las nuevas coordenadas usando funciones trigonométricas.
+
+Si es una poligonal cerrada, se realiza una verificación del cierre geométrico y se aplica una corrección proporcional a las coordenadas para distribuir el error de forma balanceada.
+
+Finalmente, se exportan y grafican los resultados.
+
+# Explicación del código
+## 1. Menú
+Para facilitar la interacción del usuario con la herramienta, se diseñó un menú principal que se muestra al ejecutar el programa. Este menú permite al usuario elegir entre las diferentes formas de ingreso de datos o salir del programa.
 ```
-def calcular_suma_teorica_angulos(n: int, tipo_angulo: str) -> float:
-    # Si los ángulos son internos, la fórmula es (n - 2) * 180°
-    if tipo_angulo == 'i':
-        return (n - 2) * 180
+ef mostrar_menú(): # Esta función imprime el menú principal para que el usuario pueda interactuar
+    print("╔═════════════════════════════════════════════╗")
+    print("║        Bienvenido al TopograficTool         ║")
+    print("╠═════════════════════════════════════════════╣")
+    print("║  1. Ingresar los datos manualmente          ║")
+    print("║  2. Cargar los datos desde un archivo(.csv) ║")
+    print("║  3. Salir                                   ║")
+    print("╚═════════════════════════════════════════════╝")
+```
+## 2. Opción 1 (Ingresar los datos manualmente)
+Cuando el usuario selecciona la opción 1, el programa lo guía paso a paso para ingresar manualmente los datos necesarios para calcular una poligonal, ya sea cerrada o abierta.
+El flujo general es el siguiente:
+````mermaid
+flowchart TD
+    A[Inicio - Usuario escoge opción 1] --> B[Seleccionar tipo de poligonal: cerrada o abierta]
+    B --> C[Ingresar coordenadas iniciales y azimut]
+    C --> D[Ingresar lados y ángulos]
+    D --> E[Calcular coordenadas]
+    E --> F{Es poligonal cerrada}
+
+    F -- No --> G1[Exportar CSV]
+    G1 --> H1[Graficar poligonal]
+    H1 --> Z1[Fin]
+
+    F -- Sí --> G[Verificar cierre]
+    G --> H{Cierre correcto}
+
+    H -- Sí --> I[Exportar CSV]
+    I --> J[Graficar poligonal]
+    J --> Z2[Fin]
+
+    H -- No --> K[Aplicar corrección angular]
+    K --> L[Corregir distancias y proyecciones]
+    L --> M[Aplicar corrección proporcional]
+    M --> N[Mostrar coordenadas corregidas]
+    N --> O[Exportar CSV]
+    O --> P[Graficar poligonal]
+    P --> Z3[Fin]
+````
+### Entrada de datos: 
+**1. Solicitar el tipo de poligonal**
+```
+def solicitar_tipo_poligonal():
+    # Solicita al usuario que indique si trabajará con una poligonal abierta o cerrada.
+    while True:  # Bucle que se repite hasta que el usuario ingrese una opción válida
+        print("¿Qué tipo de poligonal vas a trabajar mi rey/reina?")
+        print("1. Abierta")
+        print("2. Cerrada")
+        tipo = input("Seleccione el tipo (1 o 2): ")
+        if tipo == "1":
+            return "abierta"  # Retorna "abierta" si elige la opción 1
+        elif tipo == "2":
+            return "cerrada"  # Retorna "cerrada" si elige la opción 2
+        else:
+            print("No mi rey/reina, esa es una opción inválida")  # Mensaje de error si la opción es incorrecta
+```
+**2. Ingreso de datos:**
+Esta función guía al usuario en el ingreso de los datos topográficos base para iniciar el cálculo de la poligonal. El procedimiento contempla el ingreso de:
+- Coordenadas del punto inicial (X, Y): en metros, pueden ser valores reales (UTM, por ejemplo) o de un sistema local arbitrario.
+- Azimut inicial: solicitado en sistema sexagesimal (grados, minutos y segundos), el cual es validado para evitar errores comunes. Luego, se convierte a grados decimales, formato requerido para realizar los cálculos posteriores como la proyección de distancias.
+
+Esta etapa es crucial, ya que define el punto de partida y la dirección inicial del levantamiento topográfico.
+
+**Retorna:**
+- x_inicial (float): Coordenada Este (X) del punto de partida.
+- y_inicial (float): Coordenada Norte (Y) del punto de partida.
+- azimut_decimal (float): Dirección inicial expresada en grados decimales.
+```
+def ingreso_datos():
+    # Mensajes informativos para el usuario
+    print("\n>>> Ingreso de coordenadas y azimut inicial")
+    print("RECUERDA: Ingresa los ángulos en sistema sexagesimal")
+    print("          Ingrese las coordenadas del punto inicial (X, Y) en metros.")
+    print("          Puede usar coordenadas reales o un sistema local arbitrario.")
+    # Se piden las coordenadas del punto inicial
+    x_inicial = float(input("Ingrese la coordenada X del punto inicial: "))
+    y_inicial = float(input("Ingrese la coordenada Y del punto inicial: "))
+    # Ingreso del azimut inicial
+    print("Ingrese el azimut inicial en sistema sexagesimal:")
+    # Validación del formato correcto de minutos y segundos
+    while True:
+        grados = int(input("  Grados: "))
+        minutos = int(input("  Minutos: "))
+        segundos = float(input("  Segundos: "))
+        # Asegura que los minutos y segundos estén en el rango válido
+        if 0 <= minutos < 60 and 0 <= segundos < 60:
+            break
+        else:
+            print("Noporolo, otra vez, los minutos y segundos deben estar entre 0 y 59.")
+    
+    # Conversión del ángulo de sexagesimal a decimal
+    azimut_decimal = grados + minutos / 60 + segundos / 3600
+    # Muestra el azimut convertido para verificación
+    print(f"El azimut inicial en decimal: {azimut_decimal:.3f}°")
+    # Devuelve los valores necesarios
+    return x_inicial, y_inicial, azimut_decimal
+```
+**3. Entrada de datos (lados y ángulos)**
+Esta función solicita al usuario los datos topográficos de cada lado de la poligonal: la distancia, la dirección de giro (izquierda o derecha) y el ángulo en sistema sexagesimal.
+Si se trata de una poligonal cerrada, se consulta además si los ángulos son internos o externos para aplicar una corrección angular automática que garantice el cierre geométrico.
+Se asegura que todos los giros tengan la misma dirección para coherencia geométrica.
+Cada ángulo ingresado se convierte a decimal y se acumula para aplicar, en el caso cerrado, la corrección proporcional por error angular.
+
+**Retorna:**
+- Una lista de tuplas con: (distancia, ángulo_decimal, dirección)
+- Tipo de ángulo ('i' o 'e') si es poligonal cerrada, o None si es abierta.
+```
+def ingresar_lados_y_angulos(poligonal_cerrada=False):
+
+    n = int(input("Ingresa porfa el número de lados de la poligonal: "))
+    lados = []
+    tipo_angulo = None
+    direccion_base = None
+    sum_angulos = 0
+
+    if poligonal_cerrada:
+        print("¿Los ángulos que vas a ingresar son internos (i) o externos (e)?")
+        tipo_angulo = input("Escribe 'i' para internos o 'e' para externos: ").strip().lower()
+        while tipo_angulo not in ['i', 'e']:
+            tipo_angulo = input("Oye, debe ser 'i' (internos) o 'e' (externos): ").strip().lower()
+
+    for i in range(n):
+        print(f"\nLado {i + 1}")
+        distancia = float(input("Distancia (m): "))
+
+        if i == 0:
+            direccion = input("¿El giro es hacia la izquierda (i) o derecha (d)?: ").strip().lower()
+            while direccion not in ["i", "d"]:
+                direccion = input("Porfa ingresa 'i' para izquierda o 'd' para derecha: ").strip().lower()
+            direccion_base = direccion
+        else:
+            direccion = input(f"¿El giro es hacia la misma dirección ({direccion_base})?: ").strip().lower()
+            while direccion != direccion_base:
+                print("No bb, todos los giros deben ser iguales en esta poligonal.")
+                direccion = input(f"Ingresa nuevamente '{direccion_base}': ").strip().lower()
+
+        print("Escribe el ángulo en sistema sexagesimal:")
+        while True:
+            g = int(input("    Grados: "))
+            m = int(input("    Minutos: "))
+            s = float(input("    Segundos: "))
+            if 0 <= m < 60 and 0 <= s < 60:
+                break
+            else:
+                print("Nop, los minutos y segundos deben estar entre 0 y 59")
+
+        angulo_decimal = g + m / 60 + s / 3600
+        sum_angulos += angulo_decimal
+        lados.append((distancia, angulo_decimal, direccion))
+
+    if poligonal_cerrada:
+        lados_corregidos = corregir_lados(lados, tipo_angulo)
+        return lados_corregidos, tipo_angulo
+
     else:
-        # Si los ángulos son externos, la fórmula es (n + 2) * 180°
-        return (n + 2) * 180
+        return lados, tipo_angulo
 ```
-***error_angular***
-```math
-$$
-\text{Corrección\_angular\_total} = \text{Suma\_teórica} - \sum \text{ángulos\_observados}
-$$
-````
-***corrección por ángulo***
-````math
-$$
-\text{Corrección\_por\_ángulo} = \frac{\text{Error\_angular}}{n}
-$$
-````
+**4. Calcular coordenadas y proyecciónes:**
+Calcula las coordenadas de los puntos de una poligonal a partir de un punto inicial, un azimut inicial, y los lados con sus respectivos ángulos y direcciones de giro.
+
 ```
-def calcular_correccion_angulos(n, tipo_angulo, suma_angular_observada):
 
-    # Calcula la suma teórica según el número de lados y tipo de ángulo
-    suma_teorica = calcular_suma_teorica_angulos(n, tipo_angulo)
+def calcular_coordenadas(x_inicial, y_inicial, azimut_inicial, lados, tipo_angulo):
+       
+    puntos = [(x_inicial, y_inicial)]
+    azimut_actual = azimut_inicial
 
-    # Calcula el error angular como la diferencia entre la suma teórica y la observada
-    error = suma_teorica - suma_angular_observada
+    for distancia, angulo, direccion in lados:
+        if tipo_angulo == 'i':
+            if direccion == "i":
+                azimut_actual = (azimut_actual + (180 - angulo)) % 360
+            else:
+                azimut_actual = (azimut_actual - (180 - angulo)) % 360
+        else:  # externos
+            if direccion == "i":
+                azimut_actual = (azimut_actual - angulo) % 360
+            else:
+                azimut_actual = (azimut_actual + angulo) % 360
 
-    # La corrección que se aplicará a cada ángulo es el error dividido entre la cantidad de ángulos
-    correccion = error / n
+        azimut_rad = math.radians(azimut_actual)
+        x_anterior, y_anterior = puntos[-1]
+        x_nuevo = x_anterior + distancia * math.sin(azimut_rad)
+        y_nuevo = y_anterior + distancia * math.cos(azimut_rad)
+        puntos.append((x_nuevo, y_nuevo))
 
-    return correccion, error, suma_teorica
+    return puntos
 ```
-***ángulo corregido***
-````math
-$$
-\text{Ángulo\_corregido} = \text{Ángulo\_observado} + \text{Corrección\_por\_ángulo}
-$$
-````
+
 ***Cálculo de azimut***
 - Para giro hacia la izquierda
 ````math
@@ -130,19 +278,6 @@ $$
     # Devuelve los valores necesarios
     return x_inicial, y_inicial, azimut_decimal
 ```
-### Cálculo de proyecciones en x y y, y correciones.
-***Proyecciones en Nortes***
-````math
-$$
-\Delta N = \cos(\text{azimut}) \cdot \text{distancia}
-$$
-````
-***Proyecciones en Estes***
-````math
-$$
-\Delta E = \sin(\text{azimut}) \cdot \text{distancia}
-$$
-````
 ### Calculo de coordenadas sin correción
 ***Coordenadas Norte***
 ````math
@@ -156,6 +291,104 @@ $$
 X = X_{\text{anterior}} + \Delta E
 $$
 ````
+### En poligonal abierta
+No se necesitan cálculos de corrección, simplemente exporta los datos a un .csv y hace la gráfica
+### En poligonales cerradas
+1. Verifica el cierre de la poligonal:
+```
+def verificar_cierre(coordenadas, tolerancia=0.01):
+
+    # Se extrae la coordenada del punto inicial
+    x_inicio, y_inicio = coordenadas[0]
+    # Se extrae la coordenada del punto final
+    x_final, y_final = coordenadas[-1]
+    
+    # Se calcula la diferencia absoluta en X y Y entre el inicio y el final
+    dx = abs(x_inicio - x_final)
+    dy = abs(y_inicio - y_final)
+    
+    # Se verifica si ambas diferencias están dentro de la tolerancia permitida
+    if dx <= tolerancia and dy <= tolerancia:
+        return True  # La poligonal se considera cerrada correctamente
+    else:
+        return False  # Existe un error de cierre mayor a la tolerancia
+```
+Si está cerrada, procede a guardar las coordenadas dadas en un .csv y gráficar, si no está cerrada, continua con los cálculos.
+ 1.1 Corregir coordenadas:
+ 
+***Suma teórica de angulos***
+```math
+$$
+\text{Ángulos\_internos} = (n - 2) \times 180^\circ
+$$
+````
+````math
+$$
+\text{Ángulos\_externos} = (n + 2) \times 180^\circ
+$$
+````
+```
+def calcular_suma_teorica_angulos(n: int, tipo_angulo: str) -> float:
+    # Si los ángulos son internos, la fórmula es (n - 2) * 180°
+    if tipo_angulo == 'i':
+        return (n - 2) * 180
+    else:
+        # Si los ángulos son externos, la fórmula es (n + 2) * 180°
+        return (n + 2) * 180
+```
+
+
+
+
+
+
+***error_angular***
+```math
+$$
+\text{Corrección\_angular\_total} = \text{Suma\_teórica} - \sum \text{ángulos\_observados}
+$$
+````
+***corrección por ángulo***
+````math
+$$
+\text{Corrección\_por\_ángulo} = \frac{\text{Error\_angular}}{n}
+$$
+````
+```
+def calcular_correccion_angulos(n, tipo_angulo, suma_angular_observada):
+
+    # Calcula la suma teórica según el número de lados y tipo de ángulo
+    suma_teorica = calcular_suma_teorica_angulos(n, tipo_angulo)
+
+    # Calcula el error angular como la diferencia entre la suma teórica y la observada
+    error = suma_teorica - suma_angular_observada
+
+    # La corrección que se aplicará a cada ángulo es el error dividido entre la cantidad de ángulos
+    correccion = error / n
+
+    return correccion, error, suma_teorica
+```
+***ángulo corregido***
+````math
+$$
+\text{Ángulo\_corregido} = \text{Ángulo\_observado} + \text{Corrección\_por\_ángulo}
+$$
+````
+
+### Cálculo de proyecciones en x y y, y correciones.
+***Proyecciones en Nortes***
+````math
+$$
+\Delta N = \cos(\text{azimut}) \cdot \text{distancia}
+$$
+````
+***Proyecciones en Estes***
+````math
+$$
+\Delta E = \sin(\text{azimut}) \cdot \text{distancia}
+$$
+````
+
 
 Utilizadas en ese orden, con la siguiente lógica 
 ````mermaid
@@ -384,7 +617,7 @@ def corregir_distancias_y_proyecciones(coordenadas, lados):
     return coordenadas_corregidas
 ```
 
-### Para poligonal abierta básicamente hace lo mismo pero sin la corrección de ángulos
+
 
 ## Para graficar
 ````
