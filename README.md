@@ -112,6 +112,7 @@ def solicitar_tipo_poligonal():
             print("No mi rey/reina, esa es una opción inválida")  # Mensaje de error si la opción es incorrecta
 ```
 **2. Ingreso de datos:**
+
 Esta función guía al usuario en el ingreso de los datos topográficos base para iniciar el cálculo de la poligonal. El procedimiento contempla el ingreso de:
 - Coordenadas del punto inicial (X, Y): en metros, pueden ser valores reales (UTM, por ejemplo) o de un sistema local arbitrario.
 - Azimut inicial: solicitado en sistema sexagesimal (grados, minutos y segundos), el cual es validado para evitar errores comunes. Luego, se convierte a grados decimales, formato requerido para realizar los cálculos posteriores como la proyección de distancias.
@@ -119,6 +120,7 @@ Esta función guía al usuario en el ingreso de los datos topográficos base par
 Esta etapa es crucial, ya que define el punto de partida y la dirección inicial del levantamiento topográfico.
 
 **Retorna:**
+
 - x_inicial (float): Coordenada Este (X) del punto de partida.
 - y_inicial (float): Coordenada Norte (Y) del punto de partida.
 - azimut_decimal (float): Dirección inicial expresada en grados decimales.
@@ -153,12 +155,14 @@ def ingreso_datos():
     return x_inicial, y_inicial, azimut_decimal
 ```
 **3. Entrada de datos (lados y ángulos)**
+
 Esta función solicita al usuario los datos topográficos de cada lado de la poligonal: la distancia, la dirección de giro (izquierda o derecha) y el ángulo en sistema sexagesimal.
 Si se trata de una poligonal cerrada, se consulta además si los ángulos son internos o externos para aplicar una corrección angular automática que garantice el cierre geométrico.
 Se asegura que todos los giros tengan la misma dirección para coherencia geométrica.
 Cada ángulo ingresado se convierte a decimal y se acumula para aplicar, en el caso cerrado, la corrección proporcional por error angular.
 
 **Retorna:**
+
 - Una lista de tuplas con: (distancia, ángulo_decimal, dirección)
 - Tipo de ángulo ('i' o 'e') si es poligonal cerrada, o None si es abierta.
 ```
@@ -213,6 +217,7 @@ def ingresar_lados_y_angulos(poligonal_cerrada=False):
         return lados, tipo_angulo
 ```
 **4. Calcular coordenadas y proyecciónes:**
+
 Calcula las coordenadas de los puntos de una poligonal a partir de un punto inicial, un azimut inicial, y los lados con sus respectivos ángulos y direcciones de giro.
 
 Cada tramo entre puntos se puede descomponer en sus componentes cartesianas (proyecciones) mediante funciones trigonométricas, utilizando el azimut y la distancia medida:
@@ -255,6 +260,7 @@ def calcular_coordenadas(x_inicial, y_inicial, azimut_inicial, lados, tipo_angul
     return puntos
 ```
 **5. Verificar el cierre**
+
 Luego de calcular las proyecciones parciales en las direcciones Norte (ΔN) y Este (ΔE), se determina la diferencia neta de cierre como la distancia que separa el punto final calculado del punto inicial de la poligonal:
 ````math
 NS=PN-PS
@@ -280,6 +286,7 @@ def verificar_cierre(coordenadas, tolerancia=0.01):
         return False  # Existe un error de cierre mayor a la tolerancia
 ```
 **6. Calcular el error de cierre**
+
 Una vez corregidos los ángulos, se procede a calcular los desplazamientos parciales en dirección Norte (ΔN) y Este (ΔE) para cada tramo de la poligonal, a partir de las distancias y azimuts. Luego, se verifica si la suma de estos desplazamientos retorna al punto de inicio
 ```math
 $$
@@ -301,6 +308,7 @@ def calcular_correccion_angulos(n, tipo_angulo, suma_angular_observada):
     return correccion, error, suma_teorica
 ```
 **7. Ajustar el error de cierre**
+
 Distribuye el error de forma proporcional a la longitud de cada lado, de forma que se ajustan los desplazamientos en norte y este. 
 ````math
 CNS=NSPN+PWN
@@ -313,7 +321,7 @@ CEW=EWPE+PWE
 Este valor representa la distancia por la cual la poligonal no cierra geométricamente. Para evaluar si el error es admisible, se calcula el error relativo de cierre, comparándolo con el error lineal de cierre.
 ```math
 $$
-p = \frac{\sum l_{\text{poligonal}}}{\E}
+p = \frac{\sum l_{\text{poligonal}}}{E}
 $$
 ```
 
@@ -324,6 +332,15 @@ E : Epsilon (rotación del polígono)
 CNS, CEW: Corrección en las proyecciones  
 p: Se expresa como 1:x
 
+Esta función aplica una corrección proporcional a las coordenadas calculadas de una poligonal cerrada, con el fin de reducir el error de cierre lineal que se presenta entre el primer y el último punto.
+
+¿Cómo funciona?
+
+- Calcula el error de cierre en las componentes X y Y.
+- Distribuye ese error proporcionalmente a lo largo de la longitud total de la poligonal.
+- Ajusta las coordenadas desde el segundo punto hasta el último, manteniendo fijo el punto inicial.
+
+Este método permite que la poligonal cierre correctamente, sin distorsionar de forma arbitraria las mediciones originales.
 ```
 def corregir_error_cierre(coordenadas, lados):
     # Coordenadas del primer y último punto
@@ -358,6 +375,18 @@ def corregir_error_cierre(coordenadas, lados):
     # Retorna las coordenadas corregidas y los errores
     return coordenadas_corregidas, error_x, error_y
 ```
+En poligonales cerradas, la suma de los ángulos internos (o externos) debe cumplir una condición teórica:
+(n - 2) × 180° para ángulos internos,
+(n + 2) × 180° para ángulos externos,
+donde n es el número de lados.
+
+¿Qué hace la función?
+
+- Calcula la suma real de los ángulos ingresados.
+- Determina el error angular con respecto al valor teórico.
+- Aplica una corrección uniforme a todos los ángulos para compensar este error.
+
+Esto garantiza que la geometría del levantamiento cumpla con los criterios de cierre angular establecidos en topografía.
 ```
 def corregir_lados(lados, tipo_angulo):
     n = len(lados)  # Número de lados
@@ -381,6 +410,7 @@ def corregir_lados(lados, tipo_angulo):
     return lados_corregidos
 ```
 **8. Calcular los ángulos teóricos**
+
 Para una poligonal cerrada de n lados, la suma teórica de los ángulos internos está dada por:
 ```math
 $$
@@ -573,6 +603,45 @@ def graficar_poligonal(coordenadas_corregidas, nombre_archivo="poligonal.png"):
 ## 3. Opcion 2 (Carga de datos desde un .csv)
 Para esta opcion se usa exactamente el mismo procedimiento, lo único diferent3e es que se debe agregar una función para que lea un archivo .csv
 Es importante que el usuario guarde el archivo con las 3 columnas indicadas y guardar el archvio como un .csv UTF - 8 (delimitado por comas)
+```mermaid
+flowchart TD
+    A[Seleccionar opción 2: Cargar desde CSV] --> B[Solicitar tipo de poligonal]
+    B --> C[Ingresar datos iniciales]
+    C --> D[Cargar lados desde CSV]
+    D --> E{¿Hubo error cargando?}
+    E -- Sí --> F[Reiniciar menú]
+    E -- No --> G[Calcular coordenadas]
+
+    G --> H{¿Poligonal cerrada?}
+    H -- No --> I[Exportar CSV y/o graficar]
+    I --> Z[Fin]
+
+    H -- Sí --> J{¿Verifica cierre?}
+    J -- Sí --> K[Exportar CSV y/o graficar]
+    K --> Z
+
+    J -- No --> L[¿Aplicar corrección de cierre?]
+    L -- No --> M[Exportar CSV y/o graficar]
+    M --> Z
+
+    L -- Sí --> N[Corregir error de cierre]
+    N --> O{¿Aplicar corrección proporcional?}
+    O -- Sí --> P[Corregir distancias y proyecciones]
+    O -- No --> Q[Usar coordenadas corregidas]
+
+    P --> R[Mostrar coordenadas corregidas]
+    Q --> R
+
+    R --> S[¿Exportar a CSV?]
+    S -- Sí --> T[Guardar archivo CSV]
+    T --> U{¿Graficar poligonal?}
+    U -- Sí --> V[Generar gráfico]
+    U -- No --> W[No generar gráfico]
+    V --> Z
+    W --> Z
+    S -- No --> Z
+```
+
 Esta función permite al usuario importar los datos de una poligonal desde un archivo .csv estructurado con las siguientes columnas:
 
 - Distancia
@@ -637,3 +706,19 @@ def cargar_desde_csv():
         print(f"Rey/ reina hubo un error al leer el archivo: {e}")
         return None, None
 ```
+## 4. Opcion 3 (salir)
+Esta opción solo es para salir del programa:
+```mermaid
+flowchart TD
+    A[¿Qué opción elige el usuario?] --> B{¿Es opción 3?}
+    B -- Sí --> C[Mostrar mensaje de despedida]
+    C --> D[Salir del programa]
+
+    B -- No --> E{¿Es una opción válida (1 o 2)?}
+    E -- No --> F[Mostrar mensaje de error gracioso]
+    F --> A
+
+    E -- Sí --> G[Ejecutar funcionalidad correspondiente]
+    G --> A
+```
+
