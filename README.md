@@ -737,7 +737,7 @@ flowchart TD
     B -- Sí --> C[Mostrar mensaje de despedida]
     C --> D[Salir del programa]
 
-    B -- No --> E{¿Es una opción válida (1 o 2)?}
+    B -- No --> E{¿Es una opción válida cómo 1 o 2?}
     E -- No --> F[Mostrar mensaje de error gracioso]
     F --> A
 
