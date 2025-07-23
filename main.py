@@ -3,25 +3,25 @@ import math
 import csv
 import matplotlib.pyplot as plt
 
-def graficar_poligonal(coordenadas, nombre_archivo="poligonal.png"):
+def graficar_poligonal(coordenadas_corregidas, nombre_archivo="poligonal.png"):
     # Crea una nueva figura de tamaño 10x8 pulgadas para la visualización
     plt.figure(figsize=(10, 8))
 
     # Separa las coordenadas X y Y en dos listas diferentes
-    xs = [x for x, y in coordenadas]
-    ys = [y for x, y in coordenadas]
+    xs = [x for x, y in coordenadas_corregidas]
+    ys = [y for x, y in coordenadas_corregidas]
 
     # Dibuja la poligonal conectando los puntos con líneas y marcando cada vértice con un círculo
     plt.plot(xs, ys, marker='o', linestyle='-', color='blue')
 
     # Recorre todos los puntos para etiquetarlos y mostrar la distancia entre cada par de puntos consecutivos
-    for i, (x, y) in enumerate(coordenadas):
+    for i, (x, y) in enumerate(coordenadas_corregidas):
         # Agrega una etiqueta "P1", "P2", etc., ligeramente desplazada hacia arriba
         plt.text(x, y + 0.5, f"P{i+1}", fontsize=9, ha='center', va='bottom', color='darkred')
         
         # Si no es el primer punto, calcular y mostrar la distancia al punto anterior
         if i > 0:
-            x0, y0 = coordenadas[i - 1]  # Punto anterior
+            x0, y0 = coordenadas_corregidas[i - 1]  # Punto anterior
             distancia = math.hypot(x - x0, y - y0)  # Distancia euclidiana
             xm = (x + x0) / 2  # Coordenada X del punto medio
             ym = (y + y0) / 2  # Coordenada Y del punto medio
@@ -471,16 +471,19 @@ def cargar_desde_csv():
     ruta = input("Esta bien rey/reina, ingresa el nombre del archivo CSV (con .csv): ")
 
     try:
-        # Intenta abrir el archivo en modo lectura con codificación UTF-8
-        with open(ruta, newline='', encoding='utf-8') as archivo:
+        # Intenta abrir el archivo en modo lectura con codificación latin1
+        with open(ruta, newline='', encoding='utf-8-sig') as archivo:
             lector = csv.DictReader(archivo)  # Usa DictReader para leer cada fila como un diccionario
+            lector.fieldnames = [nombre.strip() for nombre in lector.fieldnames]
+            print("Encabezados detectados:", lector.fieldnames)
+
 
             lados = []           # Lista para guardar los lados (distancia, ángulo, dirección)
             sum_angulos = 0      # Acumulador para la suma de ángulos
 
             for fila in lector:
                 # Convierte cada valor a su tipo correspondiente y limpia la dirección
-                distancia = float(fila['Distancia'])
+                distancia = float(fila['Distancia'.strip()])
                 angulo = float(fila['Ángulo'])
                 direccion = fila['Dirección'].strip().lower()
 
@@ -638,13 +641,22 @@ def main():  # Función que ejecuta el menú
                             print("Listo, archivo guardado :)")
                             generar = input("\n¿Deseas generar la gráfica de la poligonal? (s/n): ").strip().lower()
                             if generar == 's':
-                                graficar_poligonal(coordenadas)
+                                graficar_poligonal(coordenadas_corregidas)
                             else: 
                                 print("Esta bien, no te haré la gráfica")
                         else:
                             print("Está bien, no se guardó el archivo :(")
                     else:
                         print("Ok, no se aplicó corrección.")
+                        respuesta = input("¿Deseas guardar las coordenadas en un archivo CSV? (sí/no): ").strip().lower()
+                        if respuesta in ["sí", "si", "s"]:
+                            exportar_a_csv(coordenadas)
+                            print("Listo, archivo guardado :)")
+                            generar = input("\n¿Deseas generar la gráfica de la poligonal? (s/n): ").strip().lower()
+                            if generar == 's':
+                                graficar_poligonal(coordenadas)
+                            else: 
+                                print("Esta bien, no te haré la gráfica")
                 else:
                     print("Epaaa, la poligonal ya está cerrada. No se requiere corrección (menos trabajo).")
                     respuesta = input("¿Deseas guardar las coordenadas en un archivo CSV? (sí/no): ").strip().lower()
