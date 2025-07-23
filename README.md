@@ -730,6 +730,7 @@ def cargar_desde_csv():
 ```
 ## 4. Opcion 3 (salir)
 Esta opción solo es para salir del programa:
+
 ```mermaid
 flowchart TD
     A[¿Qué opción elige el usuario?] --> B{¿Es opción 3?}
