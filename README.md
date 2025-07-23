@@ -333,10 +333,10 @@ def calcular_correccion_angulos(n, tipo_angulo, suma_angular_observada):
 
 Distribuye el error de forma proporcional a la longitud de cada lado, de forma que se ajustan los desplazamientos en norte y este. 
 ````math
-CNS=NSPN+PWN
+CNS=PN+PS
 ````
 ````math
-CEW=EWPE+PWE
+CEW=PE+PW
 ````
 **Error relativo del cierre**
 
@@ -349,9 +349,12 @@ $$
 
 Donde: 
 
-PN, PS, PE. PW:  Sumatoria del cálculo de CNS Y CEW 
+PN, PS, PE. PW:  Sumatoria del cálculo de CNS Y CEW
+
 E : Epsilon (rotación del polígono)
+
 CNS, CEW: Corrección en las proyecciones  
+
 p: Se expresa como 1:x
 
 Esta función aplica una corrección proporcional a las coordenadas calculadas de una poligonal cerrada, con el fin de reducir el error de cierre lineal que se presenta entre el primer y el último punto.
