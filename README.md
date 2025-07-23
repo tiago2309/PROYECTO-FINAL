@@ -216,6 +216,28 @@ def ingresar_lados_y_angulos(poligonal_cerrada=False):
     else:
         return lados, tipo_angulo
 ```
+# Diagrama de flujo de las operaciones
+
+````mermaid
+flowchart TD
+    A[Inicio] --> B[Ingresar numero de lados y tipo de angulo]
+    B --> C[Sumar todos los angulos medidos]
+    C --> D[Calcular suma teorica: lados menos 2 por 180]
+    D --> E[Obtener error angular: suma medida menos teorica]
+    E --> F[Calcular correccion por angulo: error dividido lados]
+    F --> G[Aplicar correccion a cada angulo]
+    G --> H[Calcular rumbo o acimut por lado]
+    H --> I[Calcular Delta Norte: distancia por coseno de rumbo]
+    H --> J[Calcular Delta Este: distancia por seno de rumbo]
+    I --> K[Sumar todos los Delta Norte y Delta Este]
+    J --> K
+    K --> L[Calcular error de cierre con Pitagoras]
+    L --> M[Distribuir correccion proporcional]
+    M --> N[Calcular coordenadas acumuladas desde punto inicial]
+    N --> O[Graficar resultados o exportar a CSV]
+    O --> P[Fin]
+
+````
 **4. Calcular coordenadas y proyecciónes:**
 
 Calcula las coordenadas de los puntos de una poligonal a partir de un punto inicial, un azimut inicial, y los lados con sus respectivos ángulos y direcciones de giro.
